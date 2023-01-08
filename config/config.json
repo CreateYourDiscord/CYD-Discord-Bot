@@ -1,0 +1,6 @@
+{
+    "token": "YOUR_DISCORD_TOKEN",
+    "options": {
+      "totalShards": 2
+    }
+  }
