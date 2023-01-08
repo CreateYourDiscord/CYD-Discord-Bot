@@ -1,7 +1,7 @@
 ## CreateYourDiscord
 
-![Github Stars](https://img.shields.io/github/stars/Unknown-user-dev/CreateYourDiscord?style=for-the-badge)
-![GitHub issues](https://img.shields.io/github/issues-raw/Unknown-user-dev/CreateYourDiscord?style=for-the-badge)
+![Github Stars](https://img.shields.io/github/stars/CreateYourDiscord/CYD-Discord-Bot?style=for-the-badge)
+![GitHub issues](https://img.shields.io/github/issues-raw/CreateYourDiscord/CYD-Discord-Bot?style=for-the-badge)
 
 
 <p align="center">
