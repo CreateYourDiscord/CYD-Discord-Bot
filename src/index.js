@@ -49,9 +49,9 @@ const client = new Client({
 client.commands = new Collection();
 client.cluster = new ClusterClient(client);
 
-client.config = require("./config.js");
-client.emotes = require("./config.js");
-client.color = require("./config.js");
+client.config = require("./src/.env");
+client.emotes = require("./src/.env");
+client.color = require("./src/.env");
 
 module.exports = client;
 

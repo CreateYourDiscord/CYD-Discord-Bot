@@ -3,9 +3,6 @@ const { ClusterManager } = require("discord-hybrid-sharding");
 const chalk = require("chalk");
 
 require("dotenv").config(
-  {
-    path: "./src/.env",
-  }
 );
 
 async function run() {
