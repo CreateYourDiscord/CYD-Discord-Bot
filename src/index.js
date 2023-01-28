@@ -6,6 +6,7 @@ const {
   GatewayIntentBits,
 } = require("discord.js");
 const { ClusterClient, getInfo } = require("discord-hybrid-sharding");
+require("./config.js");
 
 const client = new Client({
   fetchAllMembers: true,
@@ -49,9 +50,9 @@ const client = new Client({
 client.commands = new Collection();
 client.cluster = new ClusterClient(client);
 
-client.config = require("./src/.env");
-client.emotes = require("./src/.env");
-client.color = require("./src/.env");
+client.config = require("./config.js");
+client.emotes = require("./config.js");
+client.color = require("./config.js");
 
 module.exports = client;
 

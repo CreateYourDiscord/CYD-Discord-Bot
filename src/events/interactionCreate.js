@@ -1,90 +1,58 @@
-const { Collection, PermissionsBitField } = require("discord.js");
-const ms = require("ms");
-const client = require("..");
-const cooldowns = new Collection();
+const fs = require("fs");
+const {
+  PermissionsBitField,
+  REST,
+  Routes,
+  ApplicationCommandType,
+} = require("discord.js");
 
-client.on("interactionCreate", async (interaction) => {
-  const command = client.commands.get(interaction.commandName);
-  if (interaction.type == 4 && command.autocomplete) {
-    const choices = [];
-    await command.autocomplete(interaction, choices);
-  }
+module.exports = (client) => {
+  const rest = new REST({ version: "10" }).setToken(client.config.token);
+  const commands = [];
+  fs.readdirSync("./src/commands").forEach(async (dir) => {
+    const cmdFiles = fs
+      .readdirSync(`./src/commands/${dir}`)
+      .filter((file) => file.endsWith(".js"));
 
-  if (!interaction.type == 2) return;
-  if (!command) return client.commands.delete(interaction.commandName);
+    for (const file of cmdFiles) {
+      const cmd = require(`../commands/${dir}/${file}`);
+      commands.push({
+        name: cmd.name,
+        description: cmd.description,
+        type: ApplicationCommandType.ChatInput,
+        options: cmd.options ? cmd.options : null,
+        default_permission: cmd.default_permission
+          ? cmd.default_permission
+          : null,
+        default_member_permissions: cmd.default_member_permissions
+          ? PermissionsBitField.resolve(
+              cmd.default_member_permissions
+            ).toString()
+          : null,
+      });
 
-  try {
-    if (command.cooldown) {
-      if (cooldowns.has(`${command.name}-${interaction.user.id}`)) {
-        let duration = ms(
-          cooldowns.get(`${command.name}-${interaction.user.id}`) - Date.now(),
-          { long: true }
-        );
-        return interaction.reply(client.embeds.cooldown(duration));
+      if (cmd.name) {
+        client.commands.set(cmd.name, cmd);
+      } else {
+        console.log(`Client - Failed to register ${file.split(".js")[0]}`);
       }
-
-      if (command.userPerms || command.botPerms) {
-        if (
-          !interaction.memberPermissions.has(
-            PermissionsBitField.resolve(command.userPerms || [])
-          )
-        )
-          return interaction.reply(
-            client.embeds.fail(
-              `${interaction.user}, You don’t have permission \`${command.userPerms}\`.`
-            )
-          );
-        if (
-          !interaction.guild.members.cache
-            .get(client.user.id)
-            .permissions.has(
-              PermissionsBitField.resolve(command.botPerms || [])
-            )
-        )
-          return interaction.reply(
-            client.embeds.fail(
-              `${interaction.user}, I don’t have permission \`${command.botPerms}\`.`
-            )
-          );
-      }
-
-      await command.run(client, interaction);
-      cooldowns.set(
-        `${command.name}-${interaction.user.id}`,
-        Date.now() + command.cooldown
-      );
-      setTimeout(() => {
-        cooldowns.delete(`${command.name}-${interaction.user.id}`);
-      }, command.cooldown);
-    } else {
-      if (command.userPerms || command.botPerms) {
-        if (
-          !interaction.memberPermissions.has(
-            PermissionsBitField.resolve(command.userPerms || [])
-          )
-        )
-          return interaction.reply(
-            client.embeds.fail(
-              `${interaction.user}, You don’t have permission \`${command.userPerms}\`.`
-            )
-          );
-        if (
-          !interaction.guild.members.cache
-            .get(client.user.id)
-            .permissions.has(
-              PermissionsBitField.resolve(command.botPerms || [])
-            )
-        )
-          return interaction.reply(
-            client.embeds.fail(
-              `${interaction.user}, I don’t have permission \`${command.botPerms}\`.`
-            )
-          );
-      }
-      await command.run(client, interaction);
     }
-  } catch (e) {
-    console.log(e);
-    return interaction.reply(client.config.emotes.error);
-  }
-});
+  });
+
+  (async () => {
+    try {
+      await rest.put(
+        client.config.guildID
+          ? Routes.applicationGuildCommands(
+              client.config.clientID,
+              client.config.guildID
+            )
+          : Routes.applicationCommands(client.config.clientID),
+        { body: commands }
+      );
+      console.log(`Client - Application (/) orders saved`);
+    } catch (e) {
+      console.log(`Client - Failed to save request (/) commands`, e);
+    }
+  })();
+};

@@ -1,23 +1,12 @@
-const { ClusterManager } = require("discord-hybrid-sharding");
+const { ClusterManager } = require('discord-hybrid-sharding');
+const { config } = require('dotenv');
 
-const chalk = require("chalk");
+const manager = new ClusterManager(`./src/index.js`, {
+    totalShards: 1, 
+    shardsPerClusters: 2,
+    mode: 'process', 
+    token: config.token,
+});
 
-require("dotenv").config(
-);
-
-async function run() {
-  const manager = new ClusterManager("src/index.js", {
-    mode: "process",
-    shardsPerClusters: 0,
-    token: process.env.token,
-    totalClusters: "auto",
-    totalShards: "auto",
-  });
-
-  manager.on("clusterCreate", (cluster) => {
-    console.log(chalk.red(`[ Launched ] Cluster ${cluster.id}`));
-  });
-
-  await manager.spawn({ timeout: -1 });
-}
-run();
+manager.on('clusterCreate', cluster => console.log(`Launched Cluster ${cluster.id}`));
+manager.spawn({ timeout: -1 });
